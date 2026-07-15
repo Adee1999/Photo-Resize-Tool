@@ -1,0 +1,6 @@
+{
+  "name": "Photo Size Converter",
+  "description": "Professional online photo size converter. Adjust positions, change physical sizes, apply filters, and download print-ready images and PDFs.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
