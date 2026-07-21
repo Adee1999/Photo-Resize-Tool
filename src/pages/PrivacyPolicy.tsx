@@ -10,52 +10,52 @@ export default function PrivacyPolicy() {
             <Shield size={20} />
           </div>
           <h1 className="text-2xl font-sans font-bold text-slate-900 dark:text-white">
-            Privacy Policy
+            Құпиялылық саясаты
           </h1>
         </div>
 
         <div className="prose prose-slate dark:prose-invert max-w-none text-slate-600 dark:text-slate-400 text-sm space-y-6 leading-relaxed">
           <p className="text-slate-900 dark:text-slate-200 font-semibold text-base">
-            Effective Date: July 15, 2026
+            Күшіне ену күні: 2026 жылғы 15 шілде
           </p>
 
           <p>
-            Welcome to the <strong>Photo Size Converter</strong>. We take your privacy extremely seriously. Because we believe your photos and personal identity should never be stored, analyzed, or monetized by third parties, our application is engineered to operate <strong>100% locally in your browser</strong>.
-          </p>
-
-          <h2 className="text-base font-bold text-slate-900 dark:text-white uppercase tracking-wider pt-4">
-            1. Zero Server Processing Guarantee
-          </h2>
-          <p>
-            When you select and upload an image to this website, the image <strong>never leaves your device</strong>. No background file transfers, web requests, or cloud storage uploads occur. All operations—including image cropping, rotation, filter rendering, background removal (chroma keying), mask painting, and PDF compiles—occur within your local browser tab's RAM using standard browser WebGL and 2D canvas API layers.
+            <strong>Photo Size Converter</strong>-ге қош келдіңіз. Біз сіздің құпиялылығыңызды өте маңызды деп санаймыз. Фотоларыңыз бен жеке басыңызды растайтын деректер үшінші тараптармен ешқашан сақталмауы, талданбауы немесе ақшаландырылмауы керек деп есептейтіндіктен, біздің қолданба <strong>толығымен браузеріңізде, 100% жергілікті</strong> жұмыс істейтіндей жасалған.
           </p>
 
           <h2 className="text-base font-bold text-slate-900 dark:text-white uppercase tracking-wider pt-4">
-            2. Biometric Facial Data and Grids
+            1. Серверде өңдеу мүлдем жоқтығына кепілдік
           </h2>
           <p>
-            Our "Passport Face" guide overlays are strictly vector reference graphics drawn on top of your live workspace for visual alignment. We do not run automated facial feature mapping, facial recognition, or biometric tracking models, and no telemetry about your face shape is calculated or harvested.
+            Осы сайтқа сурет таңдап жүктегенде, ол <strong>құрылғыңыздан ешқашан кетпейді</strong>. Ешбір фондық файл тасымалы, веб-сұраныс немесе бұлтты сақтауға жүктеу орындалмайды. Суретті кесу, бұру, сүзгі қолдану, фонды өшіру (chroma keying), маска бояу және PDF құрастыру сияқты барлық әрекеттер стандартты браузер WebGL және 2D canvas API қабаттарын пайдаланып, тек браузер қойындысының жедел жадында (RAM) орындалады.
           </p>
 
           <h2 className="text-base font-bold text-slate-900 dark:text-white uppercase tracking-wider pt-4">
-            3. Local Storage and Cookies
+            2. Биометриялық бет деректері мен торлар
           </h2>
           <p>
-            We only store minor configuration preferences, such as your theme choice (Light or Dark mode), inside your browser's persistent key-value <code>localStorage</code> database to improve your recurring experience. We do not use tracking pixels, analytics hooks, or third-party advertising cookies.
+            Біздің "Паспорттық бет" бағыттауыш қабаттары — жұмыс кеңістігіңіздің үстіне визуалды туралау үшін салынған қарапайым векторлық анықтамалық графика ғана. Біз автоматты бет belgілерін салыстыру, бетті тану немесе биометриялық қадағалау модельдерін іске қоспаймыз, әрі бет пішініңіз туралы ешбір телеметрия есептелмейді немесе жиналмайды.
           </p>
 
           <h2 className="text-base font-bold text-slate-900 dark:text-white uppercase tracking-wider pt-4">
-            4. Data Retention
+            3. Жергілікті сақтау және cookie файлдары
           </h2>
           <p>
-            Because we do not store any files on any server, there is no database from which to erase your files. Closing your browser tab immediately destroys all image representations loaded into your computer's short-term memory (RAM), leaving no traces of your photographs.
+            Біз тек тақырып таңдауыңыз (Ашық немесе Қараңғы режим) сияқты шағын баптау параметрлерін ғана, тұрақты тәжірибеңізді жақсарту үшін, браузеріңіздің тұрақты кілт-мән <code>localStorage</code> дерекқорында сақтаймыз. Біз бақылау пиксельдерін, аналитика құралдарын немесе үшінші тарап жарнама cookie файлдарын қолданбаймыз.
           </p>
 
           <h2 className="text-base font-bold text-slate-900 dark:text-white uppercase tracking-wider pt-4">
-            5. Contact Information
+            4. Деректерді сақтау мерзімі
           </h2>
           <p>
-            If you have any questions or security concerns regarding our browser-side converter, please reach out to us using our dedicated <a href="/contact" className="text-blue-600 dark:text-blue-400 font-medium hover:underline">Contact Form</a>.
+            Біз ешбір серверде файл сақтамайтындықтан, файлдарыңызды өшіретін дерекқор жоқ. Браузер қойындысын жабу компьютеріңіздің қысқа мерзімді жадына (RAM) жүктелген барлық сурет көшірмелерін дереу жойып, фотоларыңыздан ешбір із қалдырмайды.
+          </p>
+
+          <h2 className="text-base font-bold text-slate-900 dark:text-white uppercase tracking-wider pt-4">
+            5. Байланыс ақпараты
+          </h2>
+          <p>
+            Браузерде жұмыс істейтін түрлендіргішіміз жайлы сұрақтарыңыз немесе қауіпсіздікке қатысты алаңдаушылығыңыз болса, арнайы <a href="/contact" className="text-blue-600 dark:text-blue-400 font-medium hover:underline">Байланыс формасы</a> арқылы бізге хабарласыңыз.
           </p>
         </div>
       </div>

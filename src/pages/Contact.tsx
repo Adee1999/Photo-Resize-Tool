@@ -6,7 +6,7 @@ export default function Contact() {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
-    subject: 'General Inquiry',
+    subject: 'Жалпы сұрақ',
     message: '',
   });
 
@@ -44,68 +44,68 @@ export default function Contact() {
                     <Mail size={18} />
                   </div>
                   <h1 className="text-2xl font-sans font-extrabold tracking-tight text-slate-900 dark:text-white">
-                    Contact & Feedback
+                    Байланыс және пікір
                   </h1>
                   <p className="text-slate-500 dark:text-slate-400 text-xs">
-                    Have feedback, sizing requests, or experiencing a bug? Get in touch!
+                    Пікіріңіз, өлшем сұрауыңыз бар ма немесе қате тапсыз ба? Бізбен байланысыңыз!
                   </p>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-4 pt-4">
                   <div>
                     <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5 uppercase tracking-wider">
-                      Full Name
+                      Толық аты-жөні
                     </label>
                     <input
                       type="text"
                       required
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      placeholder="Jane Doe"
+                      placeholder="Айгүл Серікова"
                       className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-transparent text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 dark:focus:border-blue-500 transition-colors"
                     />
                   </div>
 
                   <div>
                     <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5 uppercase tracking-wider">
-                      Email Address
+                      Электрондық пошта
                     </label>
                     <input
                       type="email"
                       required
                       value={formData.email}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      placeholder="jane@example.com"
+                      placeholder="aigul@example.com"
                       className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-transparent text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 dark:focus:border-blue-500 transition-colors"
                     />
                   </div>
 
                   <div>
                     <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5 uppercase tracking-wider">
-                      Subject
+                      Тақырып
                     </label>
                     <select
                       value={formData.subject}
                       onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
                       className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 dark:focus:border-blue-500 transition-colors"
                     >
-                      <option>General Inquiry</option>
-                      <option>Feature or Sizing Request</option>
-                      <option>Bug Report</option>
-                      <option>Other Feedback</option>
+                      <option>Жалпы сұрақ</option>
+                      <option>Функция немесе өлшем сұрауы</option>
+                      <option>Қате туралы хабарлау</option>
+                      <option>Басқа пікір</option>
                     </select>
                   </div>
 
                   <div>
                     <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5 uppercase tracking-wider">
-                      Message
+                      Хабарлама
                     </label>
                     <textarea
                       required
                       rows={4}
                       value={formData.message}
                       onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                      placeholder="Describe your suggestion or question here..."
+                      placeholder="Ұсынысыңызды немесе сұрағыңызды осы жерге жазыңыз..."
                       className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-transparent text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 dark:focus:border-blue-500 transition-colors resize-none"
                     />
                   </div>
@@ -116,7 +116,7 @@ export default function Contact() {
                     whileTap={{ scale: 0.99 }}
                     className="w-full bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white font-semibold py-3 rounded-xl text-sm transition-all flex items-center justify-center space-x-2 mt-4 shadow-md"
                   >
-                    <span>{isSubmitting ? 'Sending...' : 'Send Message'}</span>
+                    <span>{isSubmitting ? 'Жіберілуде...' : 'Хабарламаны жіберу'}</span>
                     <Send size={14} />
                   </motion.button>
                 </form>
@@ -133,20 +133,20 @@ export default function Contact() {
                 </div>
                 <div className="space-y-2">
                   <h2 className="text-xl font-sans font-bold text-slate-900 dark:text-white">
-                    Feedback Sent Successfully!
+                    Пікір сәтті жіберілді!
                   </h2>
                   <p className="text-slate-500 dark:text-slate-400 text-sm max-w-sm mx-auto">
-                    Thank you for helping us improve our Photo Size Converter. Since we store no user data, your feedback was sent immediately to our client support records.
+                    Photo Size Converter құралын жақсартуға көмектескеніңізге рахмет. Біз пайдаланушы деректерін сақтамайтындықтан, пікіріңіз бірден клиент қолдау жазбаларымызға жіберілді.
                   </p>
                 </div>
                 <button
                   onClick={() => {
                     setSubmitted(false);
-                    setFormData({ name: '', email: '', subject: 'General Inquiry', message: '' });
+                    setFormData({ name: '', email: '', subject: 'Жалпы сұрақ', message: '' });
                   }}
                   className="bg-blue-50 dark:bg-slate-900 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-slate-800 font-semibold px-6 py-2 rounded-xl text-sm transition-colors"
                 >
-                  Send another message
+                  Тағы бір хабарлама жіберу
                 </button>
               </motion.div>
             )}

@@ -10,52 +10,52 @@ export default function TermsOfService() {
             <FileText size={20} />
           </div>
           <h1 className="text-2xl font-sans font-bold text-slate-900 dark:text-white">
-            Terms of Service
+            Қызмет көрсету шарттары
           </h1>
         </div>
 
         <div className="prose prose-slate dark:prose-invert max-w-none text-slate-600 dark:text-slate-400 text-sm space-y-6 leading-relaxed">
           <p className="text-slate-900 dark:text-slate-200 font-semibold text-base">
-            Last Updated: July 15, 2026
+            Соңғы жаңарту: 2026 жылғы 15 шілде
           </p>
 
           <p>
-            Please read these Terms of Service carefully before using the <strong>Photo Size Converter</strong>. By accessing or using this local utility, you agree to comply with and be bound by the following simple terms.
-          </p>
-
-          <h2 className="text-base font-bold text-slate-900 dark:text-white uppercase tracking-wider pt-4">
-            1. Scope of Use
-          </h2>
-          <p>
-            This application is provided completely free of charge for personal, commercial, and educational photographic preparation. You are permitted to upload and process photographs of any size (up to our 50 MB limits) to produce print-ready dimensions.
+            <strong>Photo Size Converter</strong>-ды қолданбас бұрын осы Қызмет көрсету шарттарын мұқият оқып шығыңыз. Осы жергілікті құралды пайдалану немесе оған кіру арқылы сіз төмендегі қарапайым шарттарды сақтауға келісесіз.
           </p>
 
           <h2 className="text-base font-bold text-slate-900 dark:text-white uppercase tracking-wider pt-4">
-            2. No Payments or Hidden Fees
+            1. Қолдану аясы
           </h2>
           <p>
-            The software is 100% free. There are no registration forms, subscriptions, premium filters, watermarks, export gates, or payment requests of any kind. You will never be asked to input credit card details or bank credentials.
+            Бұл қолданба жеке, коммерциялық және білім беру мақсатындағы фото дайындау үшін толығымен тегін ұсынылады. Сізге кез келген өлшемдегі фотосуреттерді (50 МБ шегіне дейін) жүктеп, басып шығаруға дайын өлшемдерге келтіруге рұқсат етіледі.
           </p>
 
           <h2 className="text-base font-bold text-slate-900 dark:text-white uppercase tracking-wider pt-4">
-            3. Disclaimer of Warranties
+            2. Төлемдер мен жасырын алымдар жоқ
           </h2>
           <p>
-            This tool is provided "as is" and "as available" without warranties of any kind, whether express or implied. While we strive to ensure that output ratios are mathematically precise (e.g., exactly 30×40 mm for a 3×4 cm template), users are advised to verify final print scale settings before paying physical print centers to avoid scaling mistakes.
+            Бағдарлама 100% тегін. Тіркелу формалары, жазылымдар, премиум сүзгілер, су таңбалар, экспорт шектеулері немесе кез келген түрдегі төлем сұраулары жоқ. Сізден несие карта деректерін немесе банк деректерін ешқашан сұрамаймыз.
           </p>
 
           <h2 className="text-base font-bold text-slate-900 dark:text-white uppercase tracking-wider pt-4">
-            4. Limitation of Liability
+            3. Кепілдіктерден бас тарту
           </h2>
           <p>
-            Because the application does not transmit or store files, we cannot be held responsible for any loss of local work due to sudden power outages, accidental page refreshes, or device system crashes.
+            Бұл құрал "бар күйінде" және "қолжетімді болғанда" ешбір тікелей немесе жанама кепілдіксіз ұсынылады. Шығыс арақатынастарының математикалық тұрғыда дәл болуын қамтамасыз етуге тырысамыз (мысалы, 3×4 см үлгісі үшін дәл 30×40 мм), дегенмен пайдаланушыларға масштабтау қателерін болдырмау үшін физикалық басып шығару орталықтарында төлем жасамас бұрын соңғы басып шығару масштабын тексеруді ұсынамыз.
           </p>
 
           <h2 className="text-base font-bold text-slate-900 dark:text-white uppercase tracking-wider pt-4">
-            5. Amendments
+            4. Жауапкершілікті шектеу
           </h2>
           <p>
-            We reserve the right to refine or adjust features of this free utility at any time to improve browser performance or add sizing templates.
+            Қолданба файлдарды тасымалдамайтын немесе сақтамайтындықтан, кенеттен электр қуатының өшуі, кездейсоқ бетті жаңарту немесе құрылғы жүйесінің істен шығуы салдарынан жергілікті жұмыстың жоғалуына жауап бере алмаймыз.
+          </p>
+
+          <h2 className="text-base font-bold text-slate-900 dark:text-white uppercase tracking-wider pt-4">
+            5. Өзгерістер
+          </h2>
+          <p>
+            Браузердегі өнімділікті жақсарту немесе жаңа өлшем үлгілерін қосу мақсатында осы тегін құралдың мүмкіндіктерін кез келген уақытта жетілдіру немесе өзгерту құқығын өзімізде қалдырамыз.
           </p>
         </div>
       </div>

@@ -14,10 +14,10 @@ export default function NotFound() {
             404
           </h1>
           <h2 className="text-lg font-sans font-bold text-slate-800 dark:text-slate-200">
-            Page Not Found
+            Бет табылмады
           </h2>
           <p className="text-slate-500 dark:text-slate-400 text-sm">
-            We couldn't find the page you are looking for. Let's get you back to preparing your professional photos.
+            Іздеп жатқан бетті таба алмадық. Қане, кәсіби фотоларыңызды дайындауға қайта оралайық.
           </p>
         </div>
         <div className="pt-2">
@@ -26,7 +26,7 @@ export default function NotFound() {
             className="inline-flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white px-6 py-3 rounded-xl text-sm font-semibold shadow-md transition-transform hover:-translate-y-0.5 active:translate-y-0"
           >
             <Camera size={16} />
-            <span>Go to Photo Editor</span>
+            <span>Фото редакторға өту</span>
           </Link>
         </div>
       </div>

@@ -6,38 +6,38 @@ export default function HowItWorks() {
   const steps = [
     {
       icon: Upload,
-      title: '1. Secure Upload',
-      description: 'Drag and drop any JPEG, PNG, WEBP, or Apple HEIC image up to 50 MB. Your photo is processed entirely in your browser—it is never uploaded to a remote server, guaranteeing absolute data privacy.',
+      title: '1. Қауіпсіз жүктеу',
+      description: 'Кез келген JPEG, PNG, WEBP немесе Apple HEIC суретін 50 МБ-қа дейін сүйреп апарыңыз. Фотоңыз толығымен браузеріңізде өңделеді — ол ешқашан алыстағы серверге жүктелмейді, бұл деректеріңіздің толық құпиялылығына кепілдік береді.',
       color: 'bg-blue-500',
     },
     {
       icon: Sliders,
-      title: '2. Fine-Tune & Align',
-      description: 'Zoom, rotate, flip, and adjust crop dimensions with real-time feedback. Toggle standard biometric passport grids, thirds grids, or center crosshairs to align the head and face precisely.',
+      title: '2. Дәл баптау және туралау',
+      description: 'Масштабтаңыз, бұраңыз, аударыңыз және кесу өлшемдерін нақты уақытта реттеңіз. Басты мен бетті дәл туралау үшін стандартты биометриялық паспорт торларын, үштен бір торларын немесе орталық крест сызықтарын қосыңыз.',
       color: 'bg-indigo-500',
     },
     {
       icon: Paintbrush,
-      title: '3. Erase or Color Background',
-      description: 'Remove backgrounds instantly with one-click chroma key detection, click a specific color to delete it, or paint fine details using the precision mask brush. Choose solid white, blue, gray, or pick a custom color.',
+      title: '3. Фонды өшіру немесе бояу',
+      description: 'Бір батырмамен chroma-key технологиясы арқылы фонды бірден өшіріңіз, белгілі бір түске басып оны жойыңыз немесе дәл маска қылымен нәзік бөлшектерді бояңыз. Ақ, көк, сұр түстерін таңдаңыз немесе өз түсіңізді белгілеңіз.',
       color: 'bg-purple-500',
     },
     {
       icon: Square,
-      title: '4. Choose Output Dimensions',
-      description: 'Select from a comprehensive list of standard international templates (e.g. 3x4 cm, 3.5x4.5 cm, 5x5 cm, or 10x15 cm) or configure custom dimensions down to the millimeter, centimeter, or inch.',
+      title: '4. Шығыс өлшемін таңдау',
+      description: 'Стандартты халықаралық үлгілердің толық тізімінен таңдаңыз (мысалы, 3x4 см, 3.5x4.5 см, 5x5 см немесе 10x15 см) немесе миллиметрге дейінгі дәлдікпен өз өлшемін теруге болады.',
       color: 'bg-pink-500',
     },
     {
       icon: Printer,
-      title: '5. Select Print Resolution',
-      description: 'Choose 300 PPI (standard print quality), 600 PPI (high-definition), or 900 PPI (ultra-sharp fine art). The app automatically calculates the correct pixel dimensions to guarantee lossless print outputs.',
+      title: '5. Басып шығару ажыратымдылығын таңдау',
+      description: '300 PPI (стандартты басып шығару сапасы), 600 PPI (жоғары анықтық) немесе 900 PPI (өте анық көркем сапа) таңдаңыз. Қолданба жоғалтусыз басып шығаруға кепілдік беретін дұрыс пиксель өлшемдерін автоматты есептейді.',
       color: 'bg-amber-500',
     },
     {
       icon: Download,
-      title: '6. Download Print-Ready Files',
-      description: 'Export your photo instantly as a PNG, JPEG, or a custom-sized single-page PDF. The output file is engineered to the exact physical size specified—making it immediately ready for professional printing.',
+      title: '6. Басып шығаруға дайын файлдарды жүктеу',
+      description: 'Фотоңызды бірден PNG, JPEG немесе өз өлшеміндегі бір беттік PDF ретінде экспорттаңыз. Шығыс файл көрсетілген нақты физикалық өлшемге сай жасалады — бұл оны кәсіби басып шығаруға бірден дайын етеді.',
       color: 'bg-emerald-500',
     },
   ];
@@ -52,7 +52,7 @@ export default function HowItWorks() {
             animate={{ opacity: 1, y: 0 }}
             className="text-4xl font-sans font-extrabold tracking-tight text-slate-900 dark:text-white"
           >
-            How the Photo Size Converter Works
+            Photo Size Converter қалай жұмыс істейді
           </motion.h1>
           <motion.p
             initial={{ opacity: 0 }}
@@ -60,7 +60,7 @@ export default function HowItWorks() {
             transition={{ delay: 0.1 }}
             className="text-slate-600 dark:text-slate-400 text-base max-w-xl mx-auto"
           >
-            A high-fidelity browser-side Photoshop alternative built specifically to prepare photos for passport, visa, and professional print applications.
+            Паспорт, виза және кәсіби басып шығару қажеттіліктеріне арналған, браузерде жұмыс істейтін жоғары сапалы Photoshop баламасы.
           </motion.p>
         </div>
 
@@ -98,10 +98,10 @@ export default function HowItWorks() {
           <div className="absolute inset-0 bg-gradient-to-r from-blue-700 to-indigo-700 opacity-20" />
           <div className="relative z-10 space-y-4 text-center md:text-left max-w-2xl">
             <h2 className="text-2xl font-sans font-bold tracking-tight">
-              Ready to convert your photos?
+              Фотоларыңызды түрлендіруге дайынсыз ба?
             </h2>
             <p className="text-blue-100 text-sm leading-relaxed">
-              No subscription gates. No server storage. No watermark surprises. Simply upload your photograph, configure the custom dimensions, and download a professional-grade print file immediately.
+              Жазылым қажет емес, сервердегі сақтау жоқ, күтпеген су таңбалар жоқ. Жай ғана фотоңызды жүктеп, өз өлшемін баптап, кәсіби деңгейдегі басып шығару файлын бірден жүктеп алыңыз.
             </p>
             <div className="pt-2 flex justify-center md:justify-start">
               <motion.a
@@ -110,7 +110,7 @@ export default function HowItWorks() {
                 whileTap={{ scale: 0.98 }}
                 className="bg-white text-blue-600 font-bold px-6 py-3 rounded-xl text-sm shadow-md hover:bg-blue-50 transition-colors"
               >
-                Launch Photo Editor
+                Фото редакторды ашу
               </motion.a>
             </div>
           </div>

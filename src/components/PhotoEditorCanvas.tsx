@@ -36,8 +36,10 @@ export default function PhotoEditorCanvas({
     customSize,
     isCustomSize,
     maskCanvas,
+    maskVersion,
     setTransform,
     setMaskCanvas,
+    bumpMaskVersion,
     setBgRemoval,
     pushHistory,
   } = useEditorStore();
@@ -132,7 +134,12 @@ export default function PhotoEditorCanvas({
     // Debounce processing slightly if filters are moving rapidly
     const timeout = setTimeout(updateProcessedCanvas, 15);
     return () => clearTimeout(timeout);
-  }, [imageEl, imageSrc, filters, bgRemoval.enabled, bgRemoval.keyColor, bgRemoval.tolerance, bgRemoval.feather, maskCanvas]);
+    // NOTE: maskCanvas is a stable HTMLCanvasElement reference that is mutated
+    // in-place by brush strokes (see executeBrushStroke), so its identity never
+    // changes. We depend on maskVersion instead, which is bumped on every
+    // stroke, to make sure this effect re-runs and the erased/restored pixels
+    // actually show up on screen.
+  }, [imageEl, imageSrc, filters, bgRemoval.enabled, bgRemoval.keyColor, bgRemoval.tolerance, bgRemoval.feather, maskCanvas, maskVersion]);
 
   // Get active crop box dimension (Width and Height in physical units)
   const getPhysicalSize = useCallback(() => {
@@ -199,6 +206,34 @@ export default function PhotoEditorCanvas({
     return { x: pixelX, y: pixelY };
   }, [dimensions, getPhysicalSize, transform, fitMode, imageEl]);
 
+  // Ratio that converts an on-screen (workspace) pixel length into the
+  // equivalent length in the original image's natural pixel space. Used so
+  // the brush eraser feels like a constant on-screen size regardless of the
+  // photo's actual resolution or the current zoom level.
+  const getWorkspaceToNaturalScale = useCallback(() => {
+    if (!imageEl) return 1;
+
+    const phys = getPhysicalSize();
+    const ar = phys.width / phys.height;
+
+    const W = dimensions.width;
+    const H = dimensions.height;
+
+    let cropWidth = W * 0.8;
+    let cropHeight = cropWidth / ar;
+    if (cropHeight > H * 0.8) {
+      cropHeight = H * 0.8;
+      cropWidth = cropHeight * ar;
+    }
+
+    const baseScaleX = cropWidth / imageEl.naturalWidth;
+    const baseScaleY = cropHeight / imageEl.naturalHeight;
+    const baseScale = fitMode === 'fit' ? Math.min(baseScaleX, baseScaleY) : Math.max(baseScaleX, baseScaleY);
+
+    const onScreenScale = baseScale * transform.zoom;
+    return onScreenScale > 0 ? 1 / onScreenScale : 1;
+  }, [dimensions, getPhysicalSize, fitMode, transform.zoom, imageEl]);
+
   // Main draw render loop (runs on requestAnimationFrame or whenever layout/transform updates)
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -223,7 +258,7 @@ export default function PhotoEditorCanvas({
       ctx.font = '15px sans-serif';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillText('Upload a photo to start editing', W / 2, H / 2);
+      ctx.fillText('Өңдеуді бастау үшін фото жүктеңіз', W / 2, H / 2);
       return;
     }
 
@@ -410,8 +445,10 @@ export default function PhotoEditorCanvas({
       ctx.fillStyle = '#FFFFFF';
     }
 
-    // Brush size scaled correctly relative to image's natural coordinates
-    const size = brushSize;
+    // Brush size scaled relative to the image's natural coordinates, so a
+    // "40px" brush erases the same visual area on screen no matter how large
+    // the source photo or the current zoom level is.
+    const size = brushSize * getWorkspaceToNaturalScale();
 
     ctx.lineWidth = size;
     ctx.beginPath();
@@ -427,10 +464,11 @@ export default function PhotoEditorCanvas({
 
     ctx.restore();
 
-    // Trigger state update by forcing a clone reference change in Zustand
-    // We clone the canvas reference or we can just notify. Since react triggers on ref, we can do a dummy state change or call:
-    setMaskCanvas(maskCanvas);
-  }, [maskCanvas, imageEl, brushType, brushSize, setMaskCanvas]);
+    // The maskCanvas element reference never changes when we paint on it
+    // in-place, so bump a version counter to let subscribers (the processed
+    // canvas recompute effect) know the pixels actually changed.
+    bumpMaskVersion();
+  }, [maskCanvas, imageEl, brushType, brushSize, getWorkspaceToNaturalScale, bumpMaskVersion]);
 
   // Handle Mouse Down
   const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -558,8 +596,8 @@ export default function PhotoEditorCanvas({
           <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
           <span className="font-semibold font-mono text-slate-300">
             {isCustomSize 
-              ? `Custom: ${customSize.width} × ${customSize.height} ${customSize.unit}`
-              : `Template: ${selectedSize.name}`
+              ? `Өз өлшемі: ${customSize.width} × ${customSize.height} ${customSize.unit}`
+              : `Үлгі: ${selectedSize.name}`
             }
           </span>
         </div>
@@ -572,34 +610,34 @@ export default function PhotoEditorCanvas({
               guideType === 'none' ? 'bg-blue-600 text-white font-semibold' : 'text-slate-400 hover:text-white'
             }`}
           >
-            No Guides
+            Бағыттаусыз
           </button>
           <button
             onClick={() => useEditorStore.getState().setGuideType('passport')}
             className={`px-2 py-0.5 rounded-sm transition-all text-[10px] font-bold uppercase tracking-wider ${
               guideType === 'passport' ? 'bg-blue-600 text-white font-semibold' : 'text-slate-400 hover:text-white'
             }`}
-            title="Standard Biometric Passport layout centering indicator"
+            title="Стандартты биометриялық паспорт орналасуының туралау көрсеткіші"
           >
-            Passport Face
+            Паспорттық бет
           </button>
           <button
             onClick={() => useEditorStore.getState().setGuideType('grid')}
             className={`px-2 py-0.5 rounded-sm transition-all text-[10px] font-bold uppercase tracking-wider ${
               guideType === 'grid' ? 'bg-blue-600 text-white font-semibold' : 'text-slate-400 hover:text-white'
             }`}
-            title="Rule of thirds grid lines"
+            title="Үштен бір ережесі бойынша тор сызықтары"
           >
-            Grid
+            Тор
           </button>
           <button
             onClick={() => useEditorStore.getState().setGuideType('crosshair')}
             className={`px-2 py-0.5 rounded-sm transition-all text-[10px] font-bold uppercase tracking-wider ${
               guideType === 'crosshair' ? 'bg-blue-600 text-white font-semibold' : 'text-slate-400 hover:text-white'
             }`}
-            title="Geometric center crosshairs"
+            title="Геометриялық орталық крест сызықтары"
           >
-            Crosshair
+            Крест сызық
           </button>
         </div>
       </div>
@@ -624,7 +662,7 @@ export default function PhotoEditorCanvas({
         {eyedropperActive && (
           <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-blue-600 text-white px-4 py-2 rounded-full font-medium text-xs shadow-lg animate-bounce flex items-center space-x-2">
             <span className="w-2 h-2 bg-white rounded-full animate-ping" />
-            <span>Click on any image background color to erase it!</span>
+            <span>Өшіру үшін кез келген фон түсіне басыңыз!</span>
           </div>
         )}
       </div>
@@ -635,7 +673,7 @@ export default function PhotoEditorCanvas({
           <button
             onClick={() => adjustZoom(0.9)}
             className="p-1.5 hover:bg-slate-800 rounded transition-colors"
-            title="Zoom Out"
+            title="Кішірейту"
           >
             <ZoomOut size={14} />
           </button>
@@ -645,7 +683,7 @@ export default function PhotoEditorCanvas({
           <button
             onClick={() => adjustZoom(1.1)}
             className="p-1.5 hover:bg-slate-800 rounded transition-colors"
-            title="Zoom In"
+            title="Үлкейту"
           >
             <ZoomIn size={14} />
           </button>
@@ -655,7 +693,7 @@ export default function PhotoEditorCanvas({
           <button
             onClick={rotate90}
             className="p-1.5 hover:bg-slate-800 rounded transition-colors flex items-center space-x-1"
-            title="Rotate Clockwise 90°"
+            title="90°-қа бұру"
           >
             <RotateCw size={14} />
             <span className="text-[9px] font-mono font-bold uppercase">90°</span>
@@ -667,7 +705,7 @@ export default function PhotoEditorCanvas({
               setTransform({ flipH: !transform.flipH });
             }}
             className={`p-1.5 rounded transition-colors ${transform.flipH ? 'bg-blue-600 hover:bg-blue-700' : 'hover:bg-slate-800'}`}
-            title="Flip Horizontal"
+            title="Көлденеңінен аудару"
           >
             <RefreshCw size={14} className="rotate-90" />
           </button>
@@ -678,7 +716,7 @@ export default function PhotoEditorCanvas({
               setTransform({ flipV: !transform.flipV });
             }}
             className={`p-1.5 rounded transition-colors ${transform.flipV ? 'bg-blue-600 hover:bg-blue-700' : 'hover:bg-slate-800'}`}
-            title="Flip Vertical"
+            title="Тігінен аудару"
           >
             <RefreshCw size={14} />
           </button>

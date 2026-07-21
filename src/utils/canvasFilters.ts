@@ -39,19 +39,41 @@ export function autoDetectBackgroundColor(canvas: HTMLCanvasElement): [number, n
     samples.push([data[rightIdx], data[rightIdx + 1], data[rightIdx + 2]]);
   }
 
-  // Find average
-  let sumR = 0, sumG = 0, sumB = 0;
+  // A plain average over all border samples is easily thrown off by a few
+  // outlier pixels (hair, shoulders, or shadow touching the edge), producing
+  // a "muddy" key color that then fails to chroma-key out the real
+  // background. Instead, bucket the samples into coarse color groups and use
+  // the most common group (the mode), which is far more representative of a
+  // mostly-uniform studio backdrop.
+  const bucketSize = 16;
+  const buckets = new Map<string, { count: number; r: number; g: number; b: number }>();
+
   for (const [r, g, b] of samples) {
-    sumR += r;
-    sumG += g;
-    sumB += b;
+    const key = `${Math.floor(r / bucketSize)}_${Math.floor(g / bucketSize)}_${Math.floor(b / bucketSize)}`;
+    const existing = buckets.get(key);
+    if (existing) {
+      existing.count += 1;
+      existing.r += r;
+      existing.g += g;
+      existing.b += b;
+    } else {
+      buckets.set(key, { count: 1, r, g, b });
+    }
   }
 
-  const count = samples.length || 1;
+  let bestBucket: { count: number; r: number; g: number; b: number } | null = null;
+  for (const bucket of buckets.values()) {
+    if (!bestBucket || bucket.count > bestBucket.count) {
+      bestBucket = bucket;
+    }
+  }
+
+  if (!bestBucket) return [255, 255, 255];
+
   return [
-    Math.round(sumR / count),
-    Math.round(sumG / count),
-    Math.round(sumB / count)
+    Math.round(bestBucket.r / bestBucket.count),
+    Math.round(bestBucket.g / bestBucket.count),
+    Math.round(bestBucket.b / bestBucket.count),
   ];
 }
 

@@ -12,28 +12,28 @@ export default function FAQ() {
 
   const faqs: FaqItem[] = [
     {
-      question: 'Is my uploaded photo secure? Will it be saved online?',
-      answer: 'Your photo is 100% secure. Unlike traditional online converters, our software operates completely client-side in your browser. All filters, image positioning, background keying, and PDF rendering happen locally within your browser tab. We never upload your images to any remote server, meaning your facial data remains private and secure under your direct control.',
+      question: 'Менің жүктеген фотом қауіпсіз бе? Ол онлайн сақтала ма?',
+      answer: 'Сіздің фотоңыз 100% қауіпсіз. Дәстүрлі онлайн түрлендіргіштерден айырмашылығы, біздің құрал толығымен браузеріңізде, клиент жағында жұмыс істейді. Барлық сүзгілер, суретті орналастыру, фон түсін таңдау және PDF жасау браузер қойындысында жергілікті түрде орындалады. Біз суреттеріңізді ешқашан алыстағы серверге жүктемейміз, яғни бет деректеріңіз тек сізде, толық бақылауыңызда қалады.',
     },
     {
-      question: 'How does the one-click background removal work?',
-      answer: 'Our background remover uses an advanced Euclidean chroma-keying algorithm to detect solid backgrounds (such as portrait studio backdrops) and erase them instantly. You can adjust the "Tolerance" slider to expand or narrow the erased color range, and use the "Feather" slider to smooth out fine edges like hair. For more complex backgrounds, you can use our manual "Brush Mask" to paint away or restore background details with a soft-edged cursor.',
+      question: 'Бір батырмамен фонды өшіру қалай жұмыс істейді?',
+      answer: 'Біздің фон өшіргіш біртекті фондарды (мысалы, студиялық портрет фондарын) анықтап, оларды бірден өшіру үшін жетілдірілген евклидтік chroma-key алгоритмін қолданады. Өшірілетін түс ауқымын кеңейту немесе тарылту үшін "Төзімділік" жүгірткісін, ал шаш секілді нәзік жиектерді жұмсарту үшін "Жиек жұмсарту" жүгірткісін реттей аласыз. Күрделірек фондар үшін жұмсақ жиекті курсормен фонды қолмен өшіретін немесе қалпына келтіретін "Қыл маскасын" қолдануға болады.',
     },
     {
-      question: 'What is PPI and which setting should I select?',
-      answer: 'PPI (Pixels Per Inch) represents the printing density of your image. 300 PPI is the professional standard for high-quality printing, yielding clear details. 600 PPI is excellent for close-up viewing on glossy photographic paper, and 900 PPI is ideal for fine art gallery-grade printing. When you select a PPI, our converter automatically scales the output pixel size. E.g. a 3×4 cm photo printed at 300 PPI is 354×472 pixels, whereas at 900 PPI it is 1063×1417 pixels.',
+      question: 'PPI дегеніміз не және қай мәнді таңдау керек?',
+      answer: 'PPI (дюймдегі пиксель саны) суретіңіздің басып шығару тығыздығын білдіреді. 300 PPI — жоғары сапалы басып шығарудың кәсіби стандарты, ол анық детальдар береді. 600 PPI жылтыр фотоқағазда жақыннан қарауға өте қолайлы, ал 900 PPI көркем галерея деңгейіндегі басып шығаруға сай келеді. PPI таңдағанда, түрлендіргіш шығыс пиксель өлшемін автоматты түрде масштабтайды. Мысалы, 3×4 см фото 300 PPI-де 354×472 пиксель болса, 900 PPI-де 1063×1417 пиксель болады.',
     },
     {
-      question: 'Why does the downloaded PDF match my selected photo size instead of A4?',
-      answer: 'This application is designed specifically as a professional photo preparation tool. It outputs ONE perfectly dimensioned image file, conforming exactly to your desired physical crop (e.g. 3×4 cm). Printing on A4 often stretches photos or clusters copies. By exporting a PDF that is exactly 30×40 mm, professional print drivers can read the native canvas metadata and print a single copy at the exact dimension specified without scaling errors.',
+      question: 'Неге жүктелген PDF A4 емес, менің таңдаған фото өлшеміме сай келеді?',
+      answer: 'Бұл қолданба арнайы кәсіби фото дайындау құралы ретінде жасалған. Ол сіздің қалаған физикалық кесіміңізге (мысалы, 3×4 см) дәл сай келетін БІР суретті шығарады. A4-ке басып шығару көбіне суреттерді созады немесе көшірмелерді топтайды. Дәл 30×40 мм өлшемді PDF экспорттау арқылы кәсіби басып шығару принтерлері canvas метадеректерін оқып, масштабтау қателерінсіз бір көшірмені дәл көрсетілген өлшемде басып шығара алады.',
     },
     {
-      question: 'Does the application support Apple HEIC images?',
-      answer: 'Yes! We support native, offline conversion of Apple HEIC files in the browser. When you upload a `.heic` file from your iPhone, our system dynamically decodes and translates the image into a standard high-quality JPEG in-browser, letting you edit and crop it instantly without using third-party converter software.',
+      question: 'Қолданба Apple HEIC суреттерін қолдай ма?',
+      answer: 'Иә! Біз Apple HEIC файлдарын браузерде жергілікті түрде түрлендіруді қолдаймыз. iPhone-нан `.heic` файлын жүктегенде, жүйе оны браузерде автоматты түрде сапалы JPEG форматына айналдырады, осылайша сіз оны сыртқы түрлендіргіш бағдарламаны қолданбай-ақ бірден өңдеп, кесе аласыз.',
     },
     {
-      question: 'Can I set custom dimensions?',
-      answer: 'Absolutely. If none of our standard templates fit your requirements (e.g. visa photo specs for a specific country), simply check the "Custom Size" checkbox. You can enter any width and height, and select your preferred units (Millimeters, Centimeters, or Inches). The canvas crop window will resize in real-time.',
+      question: 'Өз өлшемімді орната аламын ба?',
+      answer: 'Әрине. Стандартты үлгілердің ешқайсысы сіздің талабыңызға сай келмесе (мысалы, белгілі бір елдің виза фото талабы), жай ғана "Өз өлшемі" құсбелгісін қойыңыз. Кез келген ені мен биіктігін енгізіп, қалаған өлшем бірлігін (миллиметр, сантиметр немесе дюйм) таңдай аласыз. Кесу терезесі нақты уақытта өлшемін өзгертеді.',
     },
   ];
 
@@ -46,10 +46,10 @@ export default function FAQ() {
             <HelpCircle size={24} />
           </div>
           <h1 className="text-3xl font-sans font-extrabold tracking-tight text-slate-900 dark:text-white">
-            Frequently Asked Questions
+            Жиі қойылатын сұрақтар
           </h1>
           <p className="text-slate-600 dark:text-slate-400 text-sm max-w-lg mx-auto">
-            Got questions about print layout, resolution calculations, or file safety? Find immediate answers below.
+            Басып шығару пішімі, ажыратымдылықты есептеу немесе файл қауіпсіздігі жайлы сұрақтарыңыз бар ма? Жауаптарды төменнен табыңыз.
           </p>
         </div>
 

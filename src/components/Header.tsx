@@ -29,9 +29,9 @@ export default function Header() {
   };
 
   const navLinks = [
-    { path: '/how-it-works', label: 'How It Works', icon: BookOpen },
-    { path: '/faq', label: 'FAQ', icon: HelpCircle },
-    { path: '/contact', label: 'Contact', icon: MessageSquare },
+    { path: '/how-it-works', label: 'Қалай жұмыс істейді', icon: BookOpen },
+    { path: '/faq', label: 'Жиі қойылатын сұрақтар', icon: HelpCircle },
+    { path: '/contact', label: 'Байланыс', icon: MessageSquare },
   ];
 
   return (
@@ -47,7 +47,7 @@ export default function Header() {
               PhotoSize<span className="text-blue-600 dark:text-blue-400">Pro</span>
             </span>
             <span className="font-mono text-[9px] text-slate-400 uppercase tracking-widest hidden sm:inline">
-              Client-side
+              Браузерде жұмыс істейді
             </span>
           </div>
         </Link>
@@ -62,7 +62,7 @@ export default function Header() {
                 : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white'
             }`}
           >
-            Editor
+            Редактор
           </Link>
           {navLinks.map((link) => {
             const Icon = link.icon;
@@ -89,7 +89,7 @@ export default function Header() {
           <button
             onClick={toggleTheme}
             className="p-1.5 rounded border border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors"
-            title={theme === 'light' ? 'Switch to Dark Mode' : 'Switch to Light Mode'}
+            title={theme === 'light' ? 'Қараңғы режимге ауысу' : 'Ашық режимге ауысу'}
           >
             {theme === 'light' ? <Moon size={16} /> : <Sun size={16} />}
           </button>
@@ -100,7 +100,7 @@ export default function Header() {
               to="/"
               className="bg-blue-600 dark:bg-blue-500 hover:bg-blue-700 dark:hover:bg-blue-600 text-white px-3.5 py-1.5 rounded text-xs font-bold uppercase tracking-wider shadow-sm transition-all active:scale-[0.98]"
             >
-              Start Converting
+              Түрлендіруді бастау
             </Link>
           )}
         </div>

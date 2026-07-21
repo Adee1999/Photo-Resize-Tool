@@ -4,12 +4,13 @@ import heic2any from 'heic2any';
 import { motion, AnimatePresence } from 'motion/react';
 import { useEditorStore } from '../store/useEditorStore';
 import { processImage } from '../utils/canvasFilters';
+import { computeAiForegroundMask } from '../utils/aiBackgroundRemoval';
 import PhotoEditorCanvas from '../components/PhotoEditorCanvas';
 import { STANDARD_SIZES, PhotoSize } from '../types/editor';
 import {
   Upload, Sparkles, Paintbrush, Sliders, Check, Trash2, Undo2, Redo2,
   FileImage, Crop, Eye, Info, HelpCircle, Download, RefreshCw, Palette, 
-  Pipette, Layers, ShieldCheck
+  Pipette, Layers, ShieldCheck, BrainCircuit
 } from 'lucide-react';
 
 export default function Home() {
@@ -26,6 +27,7 @@ export default function Home() {
     isCustomSize,
     exportResolution,
     maskCanvas,
+    bumpMaskVersion,
     setImage,
     setTransform,
     resetTransform,
@@ -58,6 +60,9 @@ export default function Home() {
   const [brushType, setBrushType] = useState<'erase' | 'restore'>('erase');
   const [brushSize, setBrushSize] = useState(40);
   const [eyedropperActive, setEyedropperActive] = useState(false);
+  const [aiRemovalActive, setAiRemovalActive] = useState(false);
+  const [aiRemovalProgress, setAiRemovalProgress] = useState(0);
+  const [aiRemovalError, setAiRemovalError] = useState<string | null>(null);
 
   // Active section accordion inside left sidebar
   const [activeSection, setActiveSection] = useState<'size' | 'background' | 'filters' | 'resolution'>('size');
@@ -93,7 +98,7 @@ export default function Home() {
 
     // Check 50MB size limit
     if (file.size > 50 * 1024 * 1024) {
-      alert('Selected file exceeds the maximum 50 MB limit.');
+      alert('Таңдалған файл 50 МБ шегінен асып кетті.');
       return;
     }
 
@@ -134,7 +139,7 @@ export default function Home() {
 
     } catch (err: any) {
       console.error(err);
-      setConversionError('Failed to parse HEIC image. Please check the file format or try a JPEG/PNG image.');
+      setConversionError('HEIC суретін өңдеу мүмкін болмады. Файл форматын тексеріңіз немесе JPEG/PNG суретін қолданып көріңіз.');
       setIsConvertingHEIC(false);
     }
   }, [setImage]);
@@ -170,6 +175,46 @@ export default function Home() {
   const selectBackgroundColor = (colorHex: string) => {
     pushHistory();
     setBackground({ type: 'solid', color: colorHex });
+  };
+
+  // Run the real, fully local AI segmentation model (runs entirely in the
+  // browser via WASM — no image data is ever sent anywhere) and write its
+  // result into the manual mask canvas so it composites with the rest of
+  // the pipeline (and can still be brush-touched-up afterwards).
+  const handleAiBackgroundRemoval = async () => {
+    if (!imageSrc || !maskCanvas) return;
+
+    pushHistory();
+    setAiRemovalError(null);
+    setAiRemovalActive(true);
+    setAiRemovalProgress(0);
+
+    try {
+      const aiMask = await computeAiForegroundMask(
+        imageSrc,
+        maskCanvas.width,
+        maskCanvas.height,
+        (_key, current, total) => {
+          if (total > 0) {
+            setAiRemovalProgress(Math.round((current / total) * 100));
+          }
+        }
+      );
+
+      const mCtx = maskCanvas.getContext('2d');
+      if (mCtx) {
+        mCtx.clearRect(0, 0, maskCanvas.width, maskCanvas.height);
+        mCtx.drawImage(aiMask, 0, 0);
+        bumpMaskVersion();
+      }
+    } catch (err) {
+      console.error('AI background removal failed:', err);
+      setAiRemovalError(
+        'ЖИ моделін жүктеу немесе іске қосу мүмкін болмады. Интернет байланысын тексеріңіз (модель бірінші рет жүктелуі керек) немесе браузеріңіз WebAssembly-ді қолдайтынын тексеріңіз.'
+      );
+    } finally {
+      setAiRemovalActive(false);
+    }
   };
 
   // Apply Auto-Enhance preset filter mappings
@@ -236,12 +281,22 @@ export default function Home() {
     if (!ctx) return;
 
     // 2. Draw background fill
+    // JPEG and PDF cannot represent transparency: any alpha gets flattened to
+    // black by toDataURL(), which made background-removed exports come out
+    // with an unwanted black backdrop instead of transparency. Only leave the
+    // canvas transparent when the chosen format can actually keep it (PNG).
+    const canPreserveTransparency = exportFormat === 'png';
     if (backgroundColor.type === 'solid') {
       ctx.fillStyle = backgroundColor.color;
       ctx.fillRect(0, 0, widthPx, heightPx);
-    } else {
+    } else if (canPreserveTransparency) {
       // transparent png export
       ctx.clearRect(0, 0, widthPx, heightPx);
+    } else {
+      // Fall back to a clean white backdrop for JPEG/PDF so removed
+      // backgrounds don't silently turn black.
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillRect(0, 0, widthPx, heightPx);
     }
 
     // 3. Render transformed image
@@ -361,13 +416,13 @@ export default function Home() {
           >
             <div className="space-y-4 mb-8">
               <span className="bg-blue-100 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 px-3 py-1 rounded text-[10px] font-bold tracking-wider uppercase">
-                100% Secure • Local Browser Tool
+                100% Қауіпсіз • Жергілікті браузер құралы
               </span>
               <h1 className="text-3xl sm:text-4xl font-display font-bold tracking-tight text-slate-900 dark:text-white">
-                Convert Photos to Perfect Physical Sizes
+                Фотосуреттерді нақты физикалық өлшемдерге түрлендіріңіз
               </h1>
               <p className="text-slate-500 dark:text-slate-400 text-sm max-w-md mx-auto leading-relaxed">
-                Crop photograph inputs to exact centimeter, millimeter, or inch specs. Remove background colors, apply filters, and export print-ready PDFs, PNGs, or JPEGs.
+                Фотосуреттерді дәл сантиметр, миллиметр немесе дюйм өлшемдеріне келтіріп кесіңіз. Фон түстерін өшіріп, сүзгілер қолданыңыз және басып шығаруға дайын PDF, PNG немесе JPEG форматында сақтаңыз.
               </p>
             </div>
 
@@ -386,10 +441,10 @@ export default function Home() {
                 <div className="flex flex-col items-center space-y-4 py-4">
                   <RefreshCw className="animate-spin text-blue-600 dark:text-blue-500" size={36} />
                   <p className="text-sm font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wide">
-                    Decoding Apple HEIC Image...
+                    Apple HEIC суретін өңдеу...
                   </p>
                   <p className="text-xs text-slate-400">
-                    Converting strictly local inside your browser
+                    Түрлендіру толығымен браузеріңізде, жергілікті түрде орындалады
                   </p>
                 </div>
               ) : (
@@ -399,14 +454,14 @@ export default function Home() {
                   </div>
                   <div className="space-y-1">
                     <p className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">
-                      Drag & drop photograph here
+                      Фотосуретті осы жерге сүйреп апарыңыз
                     </p>
                     <p className="text-xs text-slate-400">
-                      Supports JPG, JPEG, PNG, WEBP, and HEIC (Max 50 MB)
+                      JPG, JPEG, PNG, WEBP және HEIC форматтарын қолдайды (Макс. 50 МБ)
                     </p>
                   </div>
                   <button className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white font-bold px-5 py-2 rounded text-xs uppercase tracking-wider transition-all shadow-sm">
-                    Select File
+                    Файлды таңдау
                   </button>
                 </>
               )}
@@ -419,7 +474,7 @@ export default function Home() {
             {/* Micro Privacy Badge */}
             <div className="mt-8 flex items-center justify-center space-x-2 text-slate-400 text-[11px] font-medium uppercase tracking-wider">
               <ShieldCheck size={14} className="text-emerald-500" />
-              <span>Offline Processing Active • Local & Private</span>
+              <span>Оффлайн өңдеу белсенді • Жергілікті және жеке</span>
             </div>
           </motion.div>
         ) : (
@@ -432,14 +487,14 @@ export default function Home() {
               <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-900 pb-3.5">
                 <h2 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center space-x-2">
                   <Sliders size={16} className="text-blue-600 dark:text-blue-400" />
-                  <span>Editor Controls</span>
+                  <span>Редактор басқару элементтері</span>
                 </h2>
                 <button
                   onClick={resetAll}
                   className="text-[10px] text-red-500 hover:text-red-600 font-bold uppercase tracking-wider flex items-center space-x-1 hover:bg-red-50 dark:hover:bg-red-950/20 px-2 py-1 rounded transition-colors"
                 >
                   <Trash2 size={11} />
-                  <span>Reset All</span>
+                  <span>Барлығын қалпына келтіру</span>
                 </button>
               </div>
 
@@ -454,7 +509,7 @@ export default function Home() {
                   >
                     <span className="flex items-center space-x-2">
                       <Crop size={14} className="text-slate-500" />
-                      <span>1. Crop & Physical Size</span>
+                      <span>1. Кесу және физикалық өлшем</span>
                     </span>
                   </button>
 
@@ -466,25 +521,25 @@ export default function Home() {
                         className={`py-1 text-[10px] font-bold uppercase tracking-wider rounded-sm transition-all ${
                           fitMode === 'fill' ? 'bg-white dark:bg-slate-800 shadow-sm text-blue-600 dark:text-blue-400' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800'
                         }`}
-                        title="Completely fill dimensions and auto-crop borders"
+                        title="Өлшемдерді толық толтырып, шеттерін автоматты кесу"
                       >
-                        FILL (Crop Border)
+                        ТОЛТЫРУ (шеттерін кесу)
                       </button>
                       <button
                         onClick={() => setFitMode('fit')}
                         className={`py-1 text-[10px] font-bold uppercase tracking-wider rounded-sm transition-all ${
                           fitMode === 'fit' ? 'bg-white dark:bg-slate-800 shadow-sm text-blue-600 dark:text-blue-400' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800'
                         }`}
-                        title="Scale entire photo inside dimensions"
+                        title="Барлық суретті өлшем ішіне сыйдыру"
                       >
-                        FIT (Letterbox Margins)
+                        СЫЮ (жиектермен)
                       </button>
                     </div>
 
                     {/* Custom Toggle */}
                     <div className="flex items-center justify-between pt-1">
                       <label className="text-xs font-bold uppercase tracking-wide text-slate-600 dark:text-slate-400">
-                        Custom Dimensions
+                        Өз өлшемі
                       </label>
                       <input
                         type="checkbox"
@@ -516,7 +571,7 @@ export default function Home() {
                       <div className="space-y-3">
                         <div className="grid grid-cols-3 gap-2">
                           <div>
-                            <label className="block text-[10px] font-bold text-slate-400 dark:text-slate-500 mb-1 uppercase tracking-wider">Width</label>
+                            <label className="block text-[10px] font-bold text-slate-400 dark:text-slate-500 mb-1 uppercase tracking-wider">Ені</label>
                             <input
                               type="number"
                               step="0.1"
@@ -526,7 +581,7 @@ export default function Home() {
                             />
                           </div>
                           <div>
-                            <label className="block text-[10px] font-bold text-slate-400 dark:text-slate-500 mb-1 uppercase tracking-wider">Height</label>
+                            <label className="block text-[10px] font-bold text-slate-400 dark:text-slate-500 mb-1 uppercase tracking-wider">Биіктігі</label>
                             <input
                               type="number"
                               step="0.1"
@@ -536,7 +591,7 @@ export default function Home() {
                             />
                           </div>
                           <div>
-                            <label className="block text-[10px] font-bold text-slate-400 dark:text-slate-500 mb-1 uppercase tracking-wider">Unit</label>
+                            <label className="block text-[10px] font-bold text-slate-400 dark:text-slate-500 mb-1 uppercase tracking-wider">Бірлік</label>
                             <select
                               value={customUnit}
                               onChange={(e) => setCustomUnit(e.target.value as any)}
@@ -561,11 +616,41 @@ export default function Home() {
                   >
                     <span className="flex items-center space-x-2">
                       <Paintbrush size={14} className="text-slate-500" />
-                      <span>2. Background Removal & Color</span>
+                      <span>2. Фонды өшіру және түс</span>
                     </span>
                   </button>
 
                   <div className="p-4 space-y-4 bg-white dark:bg-slate-950">
+                    {/* AI (fully local, in-browser neural network) removal button */}
+                    <button
+                      onClick={handleAiBackgroundRemoval}
+                      disabled={aiRemovalActive}
+                      className="w-full py-2 px-4 rounded text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center space-x-2 border shadow-sm border-purple-300 dark:border-purple-900 bg-purple-50 dark:bg-purple-950/30 text-purple-700 dark:text-purple-300 hover:bg-purple-100 dark:hover:bg-purple-950/50 disabled:opacity-60"
+                    >
+                      <BrainCircuit size={13} className={aiRemovalActive ? 'animate-pulse' : ''} />
+                      <span>
+                        {aiRemovalActive
+                          ? `ЖИ өңдеп жатыр... ${aiRemovalProgress}%`
+                          : 'ЖИ арқылы фонды өшіру'}
+                      </span>
+                    </button>
+                    {aiRemovalActive && (
+                      <div className="w-full h-1 bg-purple-100 dark:bg-purple-950/50 rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-purple-500 transition-all duration-300"
+                          style={{ width: `${aiRemovalProgress}%` }}
+                        />
+                      </div>
+                    )}
+                    {aiRemovalError && (
+                      <p className="text-[10px] text-red-500 leading-relaxed">{aiRemovalError}</p>
+                    )}
+                    <p className="text-[10px] text-slate-400 leading-relaxed">
+                      Толығымен браузерде жұмыс істейтін нейрондық желі. Күрделі немесе біркелкі емес фондарда дәлірек нәтиже береді. Бірінші рет қосқанда модель файлы (~40 МБ) жүктеледі, содан кейін браузер оны кэштейді.
+                    </p>
+
+                    <div className="border-t border-slate-100 dark:border-slate-900 pt-3" />
+
                     {/* Auto removal button */}
                     <button
                       onClick={handleToggleBgRemoval}
@@ -576,7 +661,7 @@ export default function Home() {
                       }`}
                     >
                       <Sparkles size={13} className="text-yellow-500 animate-pulse" />
-                      <span>{bgRemoval.enabled ? 'Background Removal Active' : 'One-Click Auto BG Removal'}</span>
+                      <span>{bgRemoval.enabled ? 'Түс бойынша өшіру белсенді' : 'Жылдам автофон өшіру (түс бойынша)'}</span>
                     </button>
 
                     {bgRemoval.enabled && (
@@ -584,7 +669,7 @@ export default function Home() {
                         {/* Tolerance & Feather */}
                         <div>
                           <div className="flex justify-between text-[11px] mb-1 font-bold uppercase tracking-wide text-slate-500">
-                            <span>Tolerance (Key sensitivity)</span>
+                            <span>Төзімділік (сезімталдық)</span>
                             <span className="font-mono">{bgRemoval.tolerance}%</span>
                           </div>
                           <input
@@ -602,7 +687,7 @@ export default function Home() {
                         
                         <div>
                           <div className="flex justify-between text-[11px] mb-1 font-bold uppercase tracking-wide text-slate-500">
-                            <span>Feather (Edge smoothing)</span>
+                            <span>Жиек жұмсарту</span>
                             <span className="font-mono">{bgRemoval.feather}%</span>
                           </div>
                           <input
@@ -620,11 +705,11 @@ export default function Home() {
 
                         {/* Eyedropper button */}
                         <div className="flex items-center justify-between pt-1">
-                          <span className="text-[11px] font-bold uppercase tracking-wide text-slate-500">Pick bg color to erase</span>
+                          <span className="text-[11px] font-bold uppercase tracking-wide text-slate-500">Өшіру үшін фон түсін таңдаңыз</span>
                           <button
                             onClick={() => setEyedropperActive(!eyedropperActive)}
                             className={`p-1.5 border rounded flex items-center justify-center transition-colors ${eyedropperActive ? 'border-blue-500 bg-blue-50 text-blue-600' : 'border-slate-200 text-slate-500 hover:text-slate-900'}`}
-                            title="Activate eyedropper"
+                            title="Түс тамшысын іске қосу"
                           >
                             <Pipette size={13} />
                           </button>
@@ -635,7 +720,7 @@ export default function Home() {
                     {/* Manual Erase brush controls */}
                     <div className="pt-3 border-t border-slate-100 dark:border-slate-900 space-y-3">
                       <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold uppercase tracking-wide text-slate-600 dark:text-slate-400">Precision Brush Eraser</span>
+                        <span className="text-xs font-bold uppercase tracking-wide text-slate-600 dark:text-slate-400">Дәл қылмен өшіргіш</span>
                         <input
                           type="checkbox"
                           checked={brushMode}
@@ -647,26 +732,26 @@ export default function Home() {
                       {brushMode && (
                         <div className="space-y-3 bg-slate-50 dark:bg-slate-900 p-3 rounded">
                           <div className="flex justify-between text-[11px] font-bold uppercase tracking-wide">
-                            <span className="text-slate-500">Brush Type</span>
+                            <span className="text-slate-500">Қыл түрі</span>
                             <div className="flex space-x-1">
                               <button
                                 onClick={() => setBrushType('erase')}
                                 className={`px-2 py-0.5 rounded-sm text-[10px] font-bold uppercase tracking-wider ${brushType === 'erase' ? 'bg-red-500 text-white' : 'bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400'}`}
                               >
-                                Erase
+                                Өшіру
                               </button>
                               <button
                                 onClick={() => setBrushType('restore')}
                                 className={`px-2 py-0.5 rounded-sm text-[10px] font-bold uppercase tracking-wider ${brushType === 'restore' ? 'bg-green-500 text-white' : 'bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400'}`}
                               >
-                                Restore
+                                Қалпына келтіру
                               </button>
                             </div>
                           </div>
 
                           <div>
                             <div className="flex justify-between text-[11px] mb-1 font-bold uppercase tracking-wide text-slate-500">
-                              <span>Brush Radius</span>
+                              <span>Қыл радиусы</span>
                               <span className="font-mono">{brushSize}px</span>
                             </div>
                             <input
@@ -685,16 +770,16 @@ export default function Home() {
                     {/* Background color select presets */}
                     <div className="pt-3 border-t border-slate-100 dark:border-slate-900 space-y-2">
                       <label className="block text-xs font-bold uppercase tracking-wide text-slate-600 dark:text-slate-400">
-                        Select New Background Color
+                        Жаңа фон түсін таңдаңыз
                       </label>
                       <div className="flex items-center space-x-2 flex-wrap gap-y-2">
                         {/* Presets - Sleek Square Presets with rounded-sm */}
                         {[
-                          { name: 'White', hex: '#FFFFFF' },
-                          { name: 'Blue', hex: '#0047AB' },
-                          { name: 'Gray', hex: '#808080' },
-                          { name: 'Red', hex: '#FF0000' },
-                          { name: 'Green', hex: '#008000' },
+                          { name: 'Ақ', hex: '#FFFFFF' },
+                          { name: 'Көк', hex: '#0047AB' },
+                          { name: 'Сұр', hex: '#808080' },
+                          { name: 'Қызыл', hex: '#FF0000' },
+                          { name: 'Жасыл', hex: '#008000' },
                         ].map((c) => (
                           <button
                             key={c.hex}
@@ -716,7 +801,7 @@ export default function Home() {
                             setBackground({ type: 'transparent' });
                           }}
                           className="w-7 h-7 rounded-sm border border-slate-200 shadow-sm relative overflow-hidden flex items-center justify-center bg-slate-200 transition-all hover:scale-105"
-                          title="Transparent"
+                          title="Мөлдір"
                         >
                           <div className="absolute inset-0 bg-transparent flex flex-wrap">
                             <div className="w-1/2 h-1/2 bg-white" />
@@ -756,7 +841,7 @@ export default function Home() {
                   >
                     <span className="flex items-center space-x-2">
                       <Sliders size={14} className="text-slate-500" />
-                      <span>3. Adjust Filters & Lighting</span>
+                      <span>3. Сүзгілер мен жарықты реттеу</span>
                     </span>
                   </button>
 
@@ -765,7 +850,7 @@ export default function Home() {
                     <div className="flex items-center justify-between p-2 bg-blue-50/50 dark:bg-slate-900/60 rounded border border-blue-100 dark:border-slate-800">
                       <span className="text-[10px] font-bold text-blue-700 dark:text-blue-300 uppercase tracking-wider flex items-center space-x-1">
                         <Sparkles size={11} />
-                        <span>AI Auto Enhance Mode</span>
+                        <span>AI автожақсарту режимі</span>
                       </span>
                       <input
                         type="checkbox"
@@ -783,19 +868,19 @@ export default function Home() {
                       }}
                       className="w-full py-1.5 text-xs font-bold uppercase tracking-wider border border-slate-200 dark:border-slate-800 hover:bg-slate-50 text-slate-600 dark:text-slate-300 rounded"
                     >
-                      Reset Filter Sliders
+                      Сүзгі жүгірткілерін қалпына келтіру
                     </button>
 
                     {/* Sliders loop */}
                     {[
-                      { key: 'exposure', label: 'Exposure', min: -80, max: 80, unit: '%' },
-                      { key: 'brightness', label: 'Brightness', min: -80, max: 80, unit: '%' },
-                      { key: 'contrast', label: 'Contrast', min: -80, max: 80, unit: '%' },
-                      { key: 'saturation', label: 'Saturation', min: -100, max: 100, unit: '%' },
-                      { key: 'sharpness', label: 'Sharpness', min: 0, max: 100, unit: '%' },
-                      { key: 'temperature', label: 'Temperature (Warmth)', min: -100, max: 100, unit: '%' },
-                      { key: 'highlights', label: 'Highlights', min: -80, max: 80, unit: '%' },
-                      { key: 'shadows', label: 'Shadows', min: -80, max: 80, unit: '%' },
+                      { key: 'exposure', label: 'Экспозиция', min: -80, max: 80, unit: '%' },
+                      { key: 'brightness', label: 'Жарықтық', min: -80, max: 80, unit: '%' },
+                      { key: 'contrast', label: 'Контраст', min: -80, max: 80, unit: '%' },
+                      { key: 'saturation', label: 'Қанықтық', min: -100, max: 100, unit: '%' },
+                      { key: 'sharpness', label: 'Айқындық', min: 0, max: 100, unit: '%' },
+                      { key: 'temperature', label: 'Температура (жылылық)', min: -100, max: 100, unit: '%' },
+                      { key: 'highlights', label: 'Жарық реңктер', min: -80, max: 80, unit: '%' },
+                      { key: 'shadows', label: 'Көлеңкелер', min: -80, max: 80, unit: '%' },
                     ].map((slider) => (
                       <div key={slider.key}>
                         <div className="flex justify-between text-[11px] font-bold uppercase tracking-wide text-slate-500 mb-1">
@@ -823,13 +908,13 @@ export default function Home() {
                     {/* Checkboxes: Grayscale, Sepia, BlackWhite */}
                     <div className="pt-3 border-t border-slate-100 dark:border-slate-900 space-y-2">
                       <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                        Monochrome Presets
+                        Монохромды алдын ала орнатулар
                       </label>
                       <div className="grid grid-cols-3 gap-2">
                         {[
-                          { key: 'grayscale', label: 'Grayscale' },
-                          { key: 'sepia', label: 'Sepia' },
-                          { key: 'blackWhite', label: 'Black & White' },
+                          { key: 'grayscale', label: 'Сұр реңк' },
+                          { key: 'sepia', label: 'Сепия' },
+                          { key: 'blackWhite', label: 'Ақ-қара' },
                         ].map((chk) => (
                           <button
                             key={chk.key}
@@ -865,7 +950,7 @@ export default function Home() {
                   >
                     <span className="flex items-center space-x-2">
                       <Layers size={14} className="text-slate-500" />
-                      <span>4. Output Resolution (PPI)</span>
+                      <span>4. Шығыс ажыратымдылығы (PPI)</span>
                     </span>
                   </button>
 
@@ -887,7 +972,7 @@ export default function Home() {
                       ))}
                     </div>
                     <p className="text-[10px] text-slate-400 mt-2.5 leading-relaxed">
-                      * Choose <strong>300 PPI</strong> for standard paper printing. Pick <strong>600 PPI</strong> or <strong>900 PPI</strong> for high-definition premium glossy photographic results.
+                      * Қарапайым қағазға басып шығару үшін <strong>300 PPI</strong> таңдаңыз. Жоғары анықтықтағы жылтыр фотонәтиже үшін <strong>600 PPI</strong> немесе <strong>900 PPI</strong> таңдаңыз.
                     </p>
                   </div>
                 </div>
@@ -915,19 +1000,19 @@ export default function Home() {
                     disabled={historyIndex <= 0}
                     onClick={undo}
                     className="p-1 hover:bg-slate-100 dark:hover:bg-slate-900 rounded disabled:opacity-40 disabled:hover:bg-transparent transition-colors flex items-center space-x-1"
-                    title="Undo Action"
+                    title="Болдырмау"
                   >
                     <Undo2 size={13} />
-                    <span>Undo</span>
+                    <span>Болдырмау</span>
                   </button>
                   <button
                     disabled={historyIndex >= history.length - 1}
                     onClick={redo}
                     className="p-1 hover:bg-slate-100 dark:hover:bg-slate-900 rounded disabled:opacity-40 disabled:hover:bg-transparent transition-colors flex items-center space-x-1"
-                    title="Redo Action"
+                    title="Қайталау"
                   >
                     <Redo2 size={13} />
-                    <span>Redo</span>
+                    <span>Қайталау</span>
                   </button>
                 </div>
 
@@ -939,7 +1024,7 @@ export default function Home() {
                   className="text-slate-600 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white font-bold uppercase tracking-wider text-[10px] flex items-center space-x-1 hover:bg-slate-100 dark:hover:bg-slate-900 px-2 py-1 rounded transition-colors"
                 >
                   <RefreshCw size={11} />
-                  <span>Reset Pan/Zoom</span>
+                  <span>Жылжыту/масштабты қалпына келтіру</span>
                 </button>
               </div>
             </div>
@@ -948,13 +1033,13 @@ export default function Home() {
             <div className="lg:col-span-3 bg-white dark:bg-slate-950 p-5 rounded-lg border border-slate-200 dark:border-slate-800 shadow-sm space-y-5">
               <h2 className="text-xs font-bold text-slate-900 dark:text-white pb-3 border-b border-slate-200 dark:border-slate-800 uppercase tracking-wider flex items-center space-x-2">
                 <FileImage size={15} className="text-blue-600 dark:text-blue-400" />
-                <span>Export Dashboard</span>
+                <span>Экспорт тақтасы</span>
               </h2>
 
               {/* Photo statistics analysis */}
               <div className="bg-slate-50 dark:bg-slate-900/60 p-4 rounded border border-slate-200 dark:border-slate-800 space-y-3.5 text-xs">
                 <div>
-                  <span className="block text-[9px] uppercase font-bold tracking-wider text-slate-400 dark:text-slate-500 mb-0.5">Original File</span>
+                  <span className="block text-[9px] uppercase font-bold tracking-wider text-slate-400 dark:text-slate-500 mb-0.5">Бастапқы файл</span>
                   <span className="block text-slate-800 dark:text-slate-200 font-semibold truncate" title={fileInfo?.name}>
                     {fileInfo?.name}
                   </span>
@@ -964,7 +1049,7 @@ export default function Home() {
                 </div>
 
                 <div>
-                  <span className="block text-[9px] uppercase font-bold tracking-wider text-slate-400 dark:text-slate-500 mb-0.5">Physical Output Dimensions</span>
+                  <span className="block text-[9px] uppercase font-bold tracking-wider text-slate-400 dark:text-slate-500 mb-0.5">Физикалық шығыс өлшемі</span>
                   <span className="block text-blue-600 dark:text-blue-400 font-extrabold text-sm uppercase tracking-wide">
                     {isCustomSize
                       ? `${customSize.width} × ${customSize.height} ${customSize.unit}`
@@ -974,21 +1059,21 @@ export default function Home() {
                 </div>
 
                 <div>
-                  <span className="block text-[9px] uppercase font-bold tracking-wider text-slate-400 dark:text-slate-500 mb-0.5">Calculated Pixel Density</span>
+                  <span className="block text-[9px] uppercase font-bold tracking-wider text-slate-400 dark:text-slate-500 mb-0.5">Есептелген пиксель тығыздығы</span>
                   <span className="block font-mono text-slate-800 dark:text-slate-200 font-bold">
                     {widthPx} × {heightPx} pixels
                   </span>
                 </div>
 
                 <div>
-                  <span className="block text-[9px] uppercase font-bold tracking-wider text-slate-400 dark:text-slate-500 mb-0.5">Print Resolution</span>
+                  <span className="block text-[9px] uppercase font-bold tracking-wider text-slate-400 dark:text-slate-500 mb-0.5">Басып шығару ажыратымдылығы</span>
                   <span className="block text-slate-800 dark:text-slate-200 font-semibold">
-                    {exportResolution} PPI (pixels per inch)
+                    {exportResolution} PPI (дюймдегі пиксель саны)
                   </span>
                 </div>
 
                 <div>
-                  <span className="block text-[9px] uppercase font-bold tracking-wider text-slate-400 dark:text-slate-500 mb-0.5">Projected Output File Size</span>
+                  <span className="block text-[9px] uppercase font-bold tracking-wider text-slate-400 dark:text-slate-500 mb-0.5">Болжалды файл өлшемі</span>
                   <span className="block font-mono text-slate-800 dark:text-slate-200 font-semibold">
                     {estimateFileSize()}
                   </span>
@@ -998,7 +1083,7 @@ export default function Home() {
               {/* Format selection */}
               <div className="space-y-2">
                 <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400">
-                  Choose Output File Format
+                  Шығыс файл форматын таңдаңыз
                 </label>
                 <div className="grid grid-cols-3 gap-0.5 bg-slate-100 dark:bg-slate-900 p-0.5 rounded">
                   {['png', 'jpeg', 'pdf'].map((fmt) => (
@@ -1023,7 +1108,7 @@ export default function Home() {
                 className="w-full bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white font-bold py-2.5 px-4 rounded text-xs uppercase tracking-wider transition-all active:scale-[0.98] shadow-sm flex items-center justify-center space-x-2 mt-4"
               >
                 <Download size={14} />
-                <span>Download Print File</span>
+                <span>Басып шығаруға арналған файлды жүктеу</span>
               </button>
 
               {/* Upload different photo */}
@@ -1031,7 +1116,7 @@ export default function Home() {
                 onClick={() => setImage(null, null)}
                 className="w-full py-2 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 text-slate-600 dark:text-slate-400 rounded text-xs font-bold uppercase tracking-wider transition-colors"
               >
-                Upload Different Photo
+                Басқа суретті жүктеу
               </button>
             </div>
 

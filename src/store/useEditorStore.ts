@@ -39,6 +39,10 @@ interface EditorState {
 
   // Brush Mask Canvas for precise manual erasing
   maskCanvas: HTMLCanvasElement | null;
+  // Bumped every time the mask canvas pixels are mutated in-place, since the
+  // HTMLCanvasElement reference itself never changes when painting on it.
+  // Consumers should depend on this (not on maskCanvas identity) to detect edits.
+  maskVersion: number;
 
   // History for Undo/Redo
   history: Array<{
@@ -71,6 +75,7 @@ interface EditorState {
   setIsCustomSize: (isCustom: boolean) => void;
   setResolution: (resolution: 300 | 600 | 900) => void;
   setMaskCanvas: (canvas: HTMLCanvasElement | null) => void;
+  bumpMaskVersion: () => void;
 
   // History Actions
   pushHistory: () => void;
@@ -130,11 +135,12 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   guideType: 'none',
 
   selectedSize: STANDARD_SIZES[0], // default 3x4 cm
-  customSize: { name: 'Custom Size', width: 3, height: 4, unit: 'cm' },
+  customSize: { name: 'Өз өлшемі', width: 3, height: 4, unit: 'cm' },
   isCustomSize: false,
   exportResolution: 300,
 
   maskCanvas: null,
+  maskVersion: 0,
 
   history: [],
   historyIndex: -1,
@@ -150,6 +156,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
       backgroundColor: { ...initialBackground },
       bgRemoval: { ...initialBgRemoval },
       maskCanvas: null,
+      maskVersion: 0,
       history: [],
       historyIndex: -1,
     });
@@ -240,6 +247,10 @@ export const useEditorStore = create<EditorState>((set, get) => ({
 
   setMaskCanvas: (maskCanvas) => {
     set({ maskCanvas });
+  },
+
+  bumpMaskVersion: () => {
+    set((state) => ({ maskVersion: state.maskVersion + 1 }));
   },
 
   pushHistory: () => {
@@ -382,10 +393,11 @@ export const useEditorStore = create<EditorState>((set, get) => ({
       bgRemoval: { ...initialBgRemoval },
       guideType: 'none',
       selectedSize: STANDARD_SIZES[0],
-      customSize: { name: 'Custom Size', width: 3, height: 4, unit: 'cm' },
+      customSize: { name: 'Өз өлшемі', width: 3, height: 4, unit: 'cm' },
       isCustomSize: false,
       exportResolution: 300,
       maskCanvas: null,
+      maskVersion: 0,
       history: [],
       historyIndex: -1,
     });
