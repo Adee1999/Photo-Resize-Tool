@@ -56,6 +56,8 @@ export default function PhotoEditorCanvas({
   const dragStart = useRef({ x: 0, y: 0 });
   const transformStart = useRef({ x: 0, y: 0 });
   const prevBrushPos = useRef<{ x: number; y: number } | null>(null);
+  const pinchStartDist = useRef<number | null>(null);
+  const pinchStartZoom = useRef(1);
 
   // Measure container and handle resizes
   useEffect(() => {
@@ -472,13 +474,18 @@ export default function PhotoEditorCanvas({
 
   // Handle Mouse Down
   const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    handlePointerDown(e.clientX, e.clientY);
+  };
+
+  // Shared pan/brush/eyedropper start logic used by both mouse and touch input
+  const handlePointerDown = (clientXRaw: number, clientYRaw: number) => {
     if (!imageEl) return;
 
     const rect = canvasRef.current?.getBoundingClientRect();
     if (!rect) return;
 
-    const clientX = e.clientX - rect.left;
-    const clientY = e.clientY - rect.top;
+    const clientX = clientXRaw - rect.left;
+    const clientY = clientYRaw - rect.top;
 
     if (eyedropperActive) {
       // Color-picking background color
@@ -520,13 +527,18 @@ export default function PhotoEditorCanvas({
 
   // Handle Mouse Move
   const handleMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    handlePointerMove(e.clientX, e.clientY);
+  };
+
+  // Shared pan/brush move logic used by both mouse and touch input
+  const handlePointerMove = (clientXRaw: number, clientYRaw: number) => {
     if (!isDragging || !imageEl) return;
 
     const rect = canvasRef.current?.getBoundingClientRect();
     if (!rect) return;
 
-    const clientX = e.clientX - rect.left;
-    const clientY = e.clientY - rect.top;
+    const clientX = clientXRaw - rect.left;
+    const clientY = clientYRaw - rect.top;
 
     if (brushMode) {
       const pixelPos = getPixelCoord(clientX, clientY);
@@ -547,12 +559,69 @@ export default function PhotoEditorCanvas({
 
   // Handle Mouse Up
   const handleMouseUp = () => {
+    handlePointerUp();
+  };
+
+  // Shared pan/brush end logic used by both mouse and touch input
+  const handlePointerUp = () => {
     if (isDragging) {
       setIsDragging(false);
       prevBrushPos.current = null;
       if (!brushMode) {
         pushHistory(); // push history after dragging finishes
       }
+    }
+  };
+
+  // Distance between two touch points, used for pinch-to-zoom
+  const getTouchDistance = (touches: React.TouchList) => {
+    const [t1, t2] = [touches[0], touches[1]];
+    return Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
+  };
+
+  // Handle Touch Start (single finger = pan/brush, two fingers = pinch zoom)
+  const handleTouchStart = (e: React.TouchEvent<HTMLCanvasElement>) => {
+    if (!imageEl) return;
+
+    if (e.touches.length === 2) {
+      // Starting a pinch gesture takes priority over any single-finger drag
+      setIsDragging(false);
+      prevBrushPos.current = null;
+      pinchStartDist.current = getTouchDistance(e.touches);
+      pinchStartZoom.current = transform.zoom;
+      return;
+    }
+
+    if (e.touches.length === 1) {
+      const touch = e.touches[0];
+      handlePointerDown(touch.clientX, touch.clientY);
+    }
+  };
+
+  // Handle Touch Move
+  const handleTouchMove = (e: React.TouchEvent<HTMLCanvasElement>) => {
+    // Prevent the page from scrolling/zooming while interacting with the canvas
+    e.preventDefault();
+
+    if (e.touches.length === 2 && pinchStartDist.current) {
+      const newDist = getTouchDistance(e.touches);
+      const scale = newDist / pinchStartDist.current;
+      const newZoom = Math.max(0.1, Math.min(15, pinchStartZoom.current * scale));
+      setTransform({ zoom: newZoom });
+      return;
+    }
+
+    if (e.touches.length === 1) {
+      const touch = e.touches[0];
+      handlePointerMove(touch.clientX, touch.clientY);
+    }
+  };
+
+  // Handle Touch End
+  const handleTouchEnd = (e: React.TouchEvent<HTMLCanvasElement>) => {
+    if (e.touches.length === 0) {
+      pinchStartDist.current = null;
+      handlePointerUp();
     }
   };
 
@@ -655,6 +724,11 @@ export default function PhotoEditorCanvas({
           onMouseUp={handleMouseUp}
           onMouseLeave={handleMouseUp}
           onWheel={handleWheel}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+          onTouchCancel={handleTouchEnd}
+          style={{ touchAction: 'none' }}
           className="block max-w-full max-h-full shadow-2xl rounded-sm"
         />
 
